@@ -34,6 +34,8 @@ class DataSet:
             self.axis = np.linspace(axis_start, axis_stop, self.axis_steps)     
         self.axis_shape = np.shape(self.axis)
 
+        self.data = []
+
     def generate_random(self, method, **kwargs):
         """
         generates random data using several methods
@@ -53,35 +55,29 @@ class DataSet:
             if self.name == "":
                 self.name = "Perlin"
 
-            #generate random vectors for gradients of each node
-            chunk_size = int(round(self.axis_shape[0]/kwargs["chunks"]))
-            node_locations = np.linspace(self.axis[0], self.axis[-1], chunk_size)
-            node_gradients = np.random.uniform(low=-1, high=1, size=np.shape(node_locations))
+            #generate chunks and random gradient vectors for each chunk
+            grid = np.linspace(self.axis[0], self.axis[-1], kwargs["chunks"])
+            chunk_size = grid[1] - grid[0]
+            grid_gradients = np.random.uniform(low=-1,high=1,size=np.shape(grid)[0])
+            
+            for i, x in enumerate(self.axis):
+                n_indexes = [0,0]
+                #calculate which box x is in
+                n_indexes[0] = np.argmin(np.abs(grid-x))
+                if n_indexes[0] != np.shape(grid)[0] - 1:
+                    n_indexes[1] = n_indexes[0]+1
+                else: 
+                    n_indexes[1] = n_indexes[0]
+                
+                #calculate distance to x, and multiply with gradient
+                n_locations = [grid[n_i] for n_i in n_indexes]
+                n_gradients = [grid_gradients[n_i] for n_i in n_indexes]
+                n_distances = 2*[x-n_locations[0], n_locations[1]-x]/chunk_size      
+                n_values = [n_gradients[i]*n_distances[i] for i in [0,1]]
 
-            self.data = []
-            #iterate over axis
-            for i, point in enumerate(self.axis):
-                #find nearest nodes, locations and gradients
-                left_node_index = np.argmin(np.abs(node_locations-point))
-                right_node_index = left_node_index + 1
-                if right_node_index == np.shape(node_locations)[0]:
-                    right_node_index = left_node_index
-                left_node_location = node_locations[left_node_index]
-                right_node_location = node_locations[right_node_index]
-                left_node_gradients = node_gradients[left_node_index]
-                right_node_gradients = node_gradients[right_node_index]
-
-                #calculate distance vectors
-                left_node_distance = point-left_node_location
-                right_node_distance = right_node_location-point
-
-                #calculate dot product with gradient vector
-                left_node_value = left_node_distance*left_node_gradients
-                right_node_value = right_node_distance*right_node_gradients
-
-                #linearly interpolate for value
-                value = np.interp(point, [left_node_location,right_node_location], [left_node_value,right_node_value])
-                self.data.append(value)
+                #linearly interpolate and store
+                x_value = np.interp(x, n_locations, n_values)
+                self.data.append(x_value)
 
     def calculate_fft(self):
         """calculates the fft of the data"""
