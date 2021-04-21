@@ -46,7 +46,7 @@ class Space_2D:
         if "scale" not in kwargs: scale = self.points_scale
         else: scale = kwargs["scale"]
 
-        return np.mgrid[0:self.shape[0]:1/scale, 0:self.shape[1]:1/scale]
+        return np.mgrid[0:self.shape[0]-1:1/scale, 0:self.shape[1]-1:1/scale]
 
     def generate_Value_oct(self, freq):
         """generates simple value noise.
@@ -58,10 +58,10 @@ class Space_2D:
         """
 
         #time period of noise
-        T = 1/freq
+        period = 1/freq
 
         #create a scaled grid
-        scaled_gridx, scaled_gridy = np.mgrid[0:self.shape[0]*T:T, 0:self.shape[1]*T:T]
+        scaled_gridx, scaled_gridy = np.mgrid[0:self.shape[0]*period:period, 0:self.shape[1]*period:period]
         scaled_gridnodes = np.vstack([scaled_gridx.ravel(), scaled_gridy.ravel()]).T
 
         #generate random values for grid
@@ -95,6 +95,7 @@ class Space_2D:
         #Value Noise
         elif method == "Value":
             octaves = kwargs["octaves"]
+            if octaves > 10: octaves = 10
 
             for i in range(1, octaves):
                 #generate single octave
@@ -130,7 +131,8 @@ class Space_2D:
         Parameters: 
             elevation (bool): creates elevation plot
             color (cm.x): sets color map
-            crop (float): crops to given fraction if specfied
+            crop (float): crops to given fraction if specified
+            file_name (str): output image file name
         Returns:
             None
         """
@@ -153,24 +155,30 @@ class Space_2D:
 
         #elevation
         if "elevation" not in kwargs: elevation = False
-        else: elevation = True
+        else: elevation = kwargs["elevation"]
 
         #plot 3d + elevation
         colorcount = 100
         if elevation == True:
-            ax = fig.add_subplot(1,2,1, projection='3d')
-            ax.plot_surface(px, py, d, cmap=color, linewidth=0, antialiased=False, rcount=colorcount, ccount=colorcount)
+            ax1 = fig.add_subplot(1,2,1, projection='3d')
+            ax1.plot_surface(px, py, d, cmap=color, linewidth=0, antialiased=False, rcount=colorcount, ccount=colorcount)
+            ax1.axis("off")
 
-            ax = fig.add_subplot(122)
-            ax.imshow(d, cmap=color)
+            ax2 = fig.add_subplot(122)
+            ax2.imshow(d, cmap=color)
 
         #plot 3d
         else:
-            ax = fig.add_subplot(1,1,1, projection='3d')
-            ax.plot_surface(px, py, d, cmap=color, linewidth=0, antialiased=False, rcount=colorcount, ccount=colorcount)
+            ax1 = fig.add_subplot(1,1,1, projection='3d')
+            ax1.plot_surface(px, py, d, cmap=color, linewidth=0, antialiased=False, rcount=colorcount, ccount=colorcount)
+            ax1.axis("off")
+
+        #save to file
+        if "file_name" in kwargs:
+            file_name = kwargs["file_name"]
+            fig.savefig(file_name, dpi=fig.dpi, bbox_inches='tight')
 
         plt.show()
-        plt.savefig("testnoise.png")
 
     def save_Data(self, file_name):
         """writes data to .csv file to 4sf
@@ -193,8 +201,8 @@ class Space_2D:
         self.data = np.loadtxt(file_name, delimiter=",")
 
 if __name__ == "__main__":
-    test_Space = Space_2D(shape=(10,10), points_scale=250)
-    test_Space.generate_Noise(method="Value", octaves=7)
+    test_Space = Space_2D(shape=(10,10), points_scale=150)
+    test_Space.generate_Noise(method="Value", octaves=10)
     test_Space.fill_Level(-0.25)
-    test_Space.plot_Data(elevation=False, color=cm.viridis, crop=0.8)
+    test_Space.plot_Data(elevation=True, color=cm.viridis, file_name="testnoise.png")
     test_Space.save_Data("testnoise.csv")
