@@ -81,6 +81,7 @@ class Space_2D:
         Returns:
             NxN array of noise
         """
+
         #initialise data array
         self.data = np.empty_like(self.pointsx)
 
@@ -119,6 +120,7 @@ class Space_2D:
         Returns:
             None
         """
+
         below_fill_indices = self.data < level
         self.data[below_fill_indices] = level
 
@@ -149,13 +151,18 @@ class Space_2D:
             px, py = self.generate_Points(scale=self.points_scale*crop)
             d = self.data[:np.shape(px)[0], :np.shape(px)[0]]
 
+        #elevation
+        if "elevation" not in kwargs: elevation = False
+        else: elevation = True
+
         #plot 3d + elevation
-        if kwargs["elevation"] == True:
+        if elevation == True:
             ax = fig.add_subplot(1,2,1, projection='3d')
             ax.plot_surface(px, py, d, cmap=color, linewidth=0, antialiased=False)
 
             ax = fig.add_subplot(122)
             ax.imshow(d, cmap=color)
+
         #plot 3d
         else:
             ax = fig.add_subplot(1,1,1, projection='3d')
@@ -164,9 +171,33 @@ class Space_2D:
         plt.show()
         plt.savefig("testnoise.png")
 
-            
+    def save_Data(self, file_name):
+        """writes data to .csv file to 4sf
+
+        Parameters:
+            file_name (str): save file name with extension
+        Returns:
+            None
+        """
+        np.savetxt(file_name, self.data, delimiter=",", fmt="%.3f")
+
+    def load_Data(self, file_name):
+        """loads data from file
+        
+        Parameters:
+            file_name (str): load file name with extension
+        Returns:
+
+        """
+        self.data = np.loadtxt(file_name, delimiter=",")
+
 if __name__ == "__main__":
-    test_Space = Space_2D((10,10),250)
-    test_Space.generate_Noise(method="Value", octaves=7)
+    #test_Space = Space_2D(shape=(10,10), points_scale=250)
+    #test_Space.generate_Noise(method="Value", octaves=7)
     #test_Space.fill_Level(-0.25)
-    test_Space.plot_Data(elevation=True, color=cm.viridis, crop=0.8)
+    #test_Space.plot_Data(elevation=False, color=cm.viridis, crop=0.1)
+    #test_Space.save_Data("testnoise.csv")
+
+    test_Space = Space_2D(shape=(10,10), points_scale=250)
+    test_Space.load_Data("testnoise.csv")
+    test_Space.plot_Data()
