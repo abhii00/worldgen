@@ -156,9 +156,10 @@ class Space_2D:
         else: elevation = True
 
         #plot 3d + elevation
+        colorcount = 100
         if elevation == True:
             ax = fig.add_subplot(1,2,1, projection='3d')
-            ax.plot_surface(px, py, d, cmap=color, linewidth=0, antialiased=False)
+            ax.plot_surface(px, py, d, cmap=color, linewidth=0, antialiased=False, rcount=colorcount, ccount=colorcount)
 
             ax = fig.add_subplot(122)
             ax.imshow(d, cmap=color)
@@ -166,7 +167,7 @@ class Space_2D:
         #plot 3d
         else:
             ax = fig.add_subplot(1,1,1, projection='3d')
-            ax.plot_surface(px, py, d, cmap=color, linewidth=0, antialiased=False)
+            ax.plot_surface(px, py, d, cmap=color, linewidth=0, antialiased=False, rcount=colorcount, ccount=colorcount)
 
         plt.show()
         plt.savefig("testnoise.png")
@@ -192,12 +193,8 @@ class Space_2D:
         self.data = np.loadtxt(file_name, delimiter=",")
 
 if __name__ == "__main__":
-    #test_Space = Space_2D(shape=(10,10), points_scale=250)
-    #test_Space.generate_Noise(method="Value", octaves=7)
-    #test_Space.fill_Level(-0.25)
-    #test_Space.plot_Data(elevation=False, color=cm.viridis, crop=0.1)
-    #test_Space.save_Data("testnoise.csv")
-
     test_Space = Space_2D(shape=(10,10), points_scale=250)
-    test_Space.load_Data("testnoise.csv")
-    test_Space.plot_Data()
+    test_Space.generate_Noise(method="Value", octaves=7)
+    test_Space.fill_Level(-0.25)
+    test_Space.plot_Data(elevation=False, color=cm.viridis, crop=0.8)
+    test_Space.save_Data("testnoise.csv")
