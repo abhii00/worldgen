@@ -43,8 +43,7 @@ class Space_2D:
             Pair of NxN arrays with kxk spacing where k = 1/scale
         """
 
-        if "scale" not in kwargs: scale = self.points_scale
-        else: scale = kwargs["scale"]
+        scale = kwargs.get("scale",self.points_scale)
 
         return np.mgrid[0:self.shape[0]-1:1/scale, 0:self.shape[1]-1:1/scale]
 
@@ -87,14 +86,14 @@ class Space_2D:
 
         #Gaussian Noise
         if method == "Gaussian":
-            mu = kwargs["mu"]
-            sigma = kwargs["sigma"]
+            mu = kwargs.get("mu", 0)
+            sigma = kwargs.get("sigma", 1)
 
             self.data = np.random.normal(loc=mu, scale=sigma, size=np.shape(self.pointsx))
 
         #Value Noise
         elif method == "Value":
-            octaves = kwargs["octaves"]
+            octaves = kwargs.get("octaves", 8)
             if octaves > 10: octaves = 10
 
             for i in range(1, octaves):
@@ -140,22 +139,22 @@ class Space_2D:
         fig = plt.figure()
 
         #color map
-        if "color" not in kwargs: color = cm.viridis
-        else: color = kwargs["color"]
+        color = kwargs.get("color", cm.viridis)
 
         #crop
-        if "crop" not in kwargs:
-            px = self.pointsx
-            py = self.pointsy
-            d = self.data
-        else:
+        crop = kwargs.get("crop", False)
+        if crop:
             crop = kwargs["crop"]
             px, py = self.generate_Points(scale=self.points_scale*crop)
             d = self.data[:np.shape(px)[0], :np.shape(px)[0]]
+        else:
+            px = self.pointsx
+            py = self.pointsy
+            d = self.data
+            
 
         #elevation
-        if "elevation" not in kwargs: elevation = False
-        else: elevation = kwargs["elevation"]
+        elevation = kwargs.get("elevation", False)
 
         #plot 3d + elevation
         colorcount = 100
@@ -174,8 +173,8 @@ class Space_2D:
             ax1.axis("off")
 
         #save to file
-        if "file_name" in kwargs:
-            file_name = kwargs["file_name"]
+        file_name = kwargs.get("file_name", False)
+        if type(file_name) == str:
             fig.savefig(file_name, dpi=fig.dpi, bbox_inches='tight')
 
         plt.show()
@@ -202,7 +201,7 @@ class Space_2D:
 
 if __name__ == "__main__":
     test_Space = Space_2D(shape=(10,10), points_scale=150)
-    test_Space.generate_Noise(method="Value", octaves=10)
+    test_Space.generate_Noise(method="Value", octaves=6)
     test_Space.fill_Level(-0.25)
-    test_Space.plot_Data(elevation=True, color=cm.viridis, file_name="testnoise.png")
+    test_Space.plot_Data(elevation=True, color=cm.viridis, crop = 0.5, file_name="testnoise.png")
     test_Space.save_Data("testnoise.csv")
