@@ -200,8 +200,8 @@ class Space_2D:
         self.data = np.loadtxt(file_name, delimiter=",")
 
 if __name__ == "__main__":
-    test_Space = Space_2D(shape=(10,10), points_scale=150)
+    test_Space = Space_2D(shape=(10,10), points_scale=130)
     test_Space.generate_Noise(method="Value", octaves=6)
     test_Space.fill_Level(-0.25)
-    test_Space.plot_Data(elevation=True, color=cm.viridis, crop = 0.5, file_name="testnoise.png")
+    test_Space.plot_Data(elevation=True, color=cm.terrain, crop = 0.75, file_name="testnoise.png")
     test_Space.save_Data("testnoise.csv")
