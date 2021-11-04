@@ -4,7 +4,7 @@ Realistic Terrain Generation.
 
 _February - October 2019_
 
-```Python```
+```PYTHON```
 
 ## **Features** 
 
